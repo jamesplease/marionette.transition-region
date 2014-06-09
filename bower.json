@@ -1,0 +1,20 @@
+{
+  "name": "marionette.transition-region",
+  "version": "0.1.0",
+  "homepage": "https://github.com/jmeas/marionette.transition-region",
+  "authors": [
+    "Jmeas <jellyes2@gmail.com>"
+  ],
+  "description": "A Marionette Region that supports animating views.",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "backbone.marionette": "~1.8.7"
+  }
+}
