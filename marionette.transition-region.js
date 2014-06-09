@@ -3,17 +3,52 @@
     show: function(view, options) {
       this.ensureEl();
 
-      // If the view has an animate out function, then wait for it to conclude and then continue
+      var currentView = this.currentView;
+
+      // If the view has an animate out function, then wait for it to conclude and then continue.
+      // Otherwise, simply continue.
       if (this.currentView && _.isFunction(this.currentView.animateOut)) {
         this.listenToOnce(this.currentView, 'animateOut', _.bind(this._onTransitionOut, this, view, options));
         this.currentView.animateOut();
         // Return this for backwards compat
         return this;
       }
-      // Otherwise, simply continue
       else {
         return this._onTransitionOut(view, options);
       }
+    },
+
+    // Close the view, animating it out first if it needs to be
+    close: function(options) {
+      options = options || {};
+
+      var view = this.currentView;
+      if (!view || view.isClosed){ return; }
+
+      // Animate by default
+      var animate = options.animate === undefined ? true : options.animate;
+
+      // Animate the view before destroying it if a function exists. Otherwise,
+      // immediately destroy it
+      if (_.isFunction(view.animateOut) && animate) {
+        this.listenToOnce(this.currentView, 'animateOut', _.bind(this._destroyView, this));
+        this.currentView.animateOut();
+      } else {
+        this._destroyView();
+      }
+    },
+
+    _destroyView: function() {
+      var view = this.currentView;
+      if (!view || view.isClosed){ return; }
+
+      // call 'close' or 'remove', depending on which is found
+      if (view.close) { view.close(); }
+      else if (view.remove) { view.remove(); }
+
+      Marionette.triggerMethod.call(this, "close", view);
+
+      delete this.currentView;
     },
 
     // This is essentially the show fn 
