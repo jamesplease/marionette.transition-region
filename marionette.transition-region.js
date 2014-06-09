@@ -68,7 +68,7 @@
 
       // Close the old view
       if (_shouldCloseView) {
-        this.close();
+        this.close({animate:false});
       }
 
       // Render the new view, then hide its $el
