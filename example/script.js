@@ -127,7 +127,7 @@
   }
 
   function emptyRegion() {
-    myRegion.close();
+    myRegion.empty();
   }
 
   var $newNormal = $('.show-normal');

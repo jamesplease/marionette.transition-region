@@ -1,7 +1,11 @@
 (function() {
   Marionette.TransitionRegion = Marionette.Region.extend({
+    transitionInCss: {
+      opacity: 0
+    },
+
     show: function(view, options) {
-      this.ensureEl();
+      this._ensureElement();
 
       var currentView = this.currentView;
 
@@ -18,12 +22,97 @@
       }
     },
 
-    // Close the view, animating it out first if it needs to be
-    close: function(options) {
+    // This is most of the original show function.
+    _onTransitionOut: function(view, options) {
+      this.triggerMethod('animateOut', this.currentView);
+
+      var showOptions = options || {};
+      var isDifferentView = view !== this.currentView;
+      var preventDestroy =  !!showOptions.preventDestroy;
+      var forceShow = !!showOptions.forceShow;
+
+      // we are only changing the view if there is a view to change to begin with
+      var isChangingView = !!this.currentView;
+
+      // The region is only animating if there's an animateIn method on the new view
+      var animatingIn = _.isFunction(view.animateIn);
+
+      // only destroy the view if we don't want to preventDestroy and the view is different
+      var _shouldDestroyView = !preventDestroy && isDifferentView;
+
+      // Destroy the old view
+      if (_shouldDestroyView) {
+        this.empty({animate:false});
+      }
+
+      // show the view if the view is different or if you want to re-show the view
+      var _shouldShowView = isDifferentView || forceShow;
+
+      // Cut things short if we're not showing the view
+      if (!_shouldShowView) {
+        return this;
+      }
+
+      // Render the new view, then hide its $el
+      view.render();
+
+      if (isChangingView) {
+        this.triggerMethod('before:swap', view);
+      }
+
+      // before:show triggerMethods
+      this.triggerMethod("before:show", view);
+      if (_.isFunction(view.triggerMethod)) {
+        view.triggerMethod("before:show");
+      } else {
+        this.triggerMethod.call(view, "before:show");
+      }
+
+      // Only hide the view if we want to animate it
+      if (animatingIn) {
+        view.$el.css(this.transitionInCss);
+      }
+
+      // Attach the view's Html to the region's el
+      if (isDifferentView || isViewDestroyed) {
+        this.attachHtml(view);
+      }
+
+      this.currentView = view;
+
+      // show triggerMethods
+      this.triggerMethod("show", view);
+      if (_.isFunction(view.triggerMethod)) {
+        view.triggerMethod("show");
+      } else {
+        this.triggerMethod.call(view, "show");
+      }
+
+      // If there's an animateIn method, then call it and wait for it to complete
+      if (animatingIn) {
+        this.listenToOnce(view, 'animateIn', _.bind(this._onTransitionIn, this));
+        view.animateIn();
+        return this;
+      }
+
+      // Otherwise, continue on
+      else {
+        return this._onTransitionIn();
+      }
+    },
+
+    // After it's shown, then we triggerMethod 'animateIn'
+    _onTransitionIn: function() {
+      this.triggerMethod('animateIn', this.currentView);
+      return this;
+    },
+
+    // Empty the region, animating the view out first if it needs to be
+    empty: function(options) {
       options = options || {};
 
       var view = this.currentView;
-      if (!view || view.isClosed){ return; }
+      if (!view || view.isDestroyed){ return; }
 
       // Animate by default
       var animate = options.animate === undefined ? true : options.animate;
@@ -40,84 +129,17 @@
 
     _destroyView: function() {
       var view = this.currentView;
-      if (!view || view.isClosed){ return; }
+      if (!view || view.isDestroyed){ return; }
 
-      // call 'close' or 'remove', depending on which is found
-      if (view.close) { view.close(); }
+      this.triggerMethod('before:empty', view);
+
+      // call 'destroy' or 'remove', depending on which is found
+      if (view.destroy) { view.destroy(); }
       else if (view.remove) { view.remove(); }
 
-      Marionette.triggerMethod.call(this, "close", view);
+      this.triggerMethod('empty', view);
 
       delete this.currentView;
     },
-
-    // This is essentially the show fn 
-    _onTransitionOut: function(view, options) {
-      Marionette.triggerMethod.call(this, 'animateOut', this.currentView);
-
-      var showOptions = options || {};
-      var isViewClosed = view.isClosed || _.isUndefined(view.$el);
-      var isDifferentView = view !== this.currentView;
-      var preventClose =  !!showOptions.preventClose;
-
-      // only close the view if we don't want to preventClose and the view is different
-      var _shouldCloseView = !preventClose && isDifferentView;
-
-      // The region is only animating if there's an animateIn method on the new view
-      var animatingIn = _.isFunction(view.animateIn);
-
-      // Close the old view
-      if (_shouldCloseView) {
-        this.close({animate:false});
-      }
-
-      // Render the new view, then hide its $el
-      view.render();
-
-      // before:show triggerMethods
-      Marionette.triggerMethod.call(this, "before:show", view);
-      if (_.isFunction(view.triggerMethod)) {
-        view.triggerMethod("before:show");
-      } else {
-        Marionette.triggerMethod.call(view, "before:show");
-      }
-
-      // Only hide the view if we want to animate it
-      if (animatingIn) {
-        view.$el.css({opacity: 0});
-      }
-
-      // Attach the view's Html to the region's el
-      if (isDifferentView || isViewClosed) {
-        this.open(view);
-      }
-
-      this.currentView = view;
-
-      // show triggerMethods
-      Marionette.triggerMethod.call(this, "show", view);
-      if (_.isFunction(view.triggerMethod)) {
-        view.triggerMethod("show");
-      } else {
-        Marionette.triggerMethod.call(view, "show");
-      }
-
-      // If there's an animateIn method, then call it and wait for it to complete
-      if (animatingIn) {
-        this.listenToOnce(view, 'animateIn', _.bind(this._onTransitionIn, this));
-        view.animateIn();
-      }
-
-      // Otherwise, continue on
-      else {
-        return this._onTransitionIn();
-      }
-    },
-
-    // After it's shown, then we triggerMethod 'animateIn'
-    _onTransitionIn: function() {
-      Marionette.triggerMethod.call(this, 'animateIn', this.currentView);
-      return this;
-    }
   });
 })();
