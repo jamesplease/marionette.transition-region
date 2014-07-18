@@ -40,7 +40,13 @@ button:hover {
   background: #ddd;
 }
 
+.view {
+  width: 500px;
+}
+
 .region {
+  position: relative;
+  overflow: hidden;
   outline: 1px solid #ddd;
   padding: 10px;
   margin-bottom: 15px;

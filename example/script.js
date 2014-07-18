@@ -1,7 +1,7 @@
 /*
- * transitionRegion
- * ----------------
- * We instantiate our TransitionRegion here. Take note how there's
+ * Our Regions
+ * -----------
+ * We instantiate our regions here. Take note how there's
  * nothing special here at all. In fact, it's backwards compatible
  * with normal regions. It just has some super powers if you pair it
  * with the right View.
@@ -9,11 +9,24 @@
  */
 
 (function() {
-  var myRegion = new Marionette.TransitionRegion({
-    el: 'div.region'
+  var normalRegion = new Marionette.TransitionRegion({
+    el: '.normal-region'
   });
 
-  window.myRegion = myRegion;
+  var fadeRegion = new Marionette.TransitionRegion({
+    el: '.fade-region'
+  });
+
+  // For the sliding region, we set the class-level property
+  // that makes the transition in and out effects happen concurrently
+  var slideRegion = new Marionette.TransitionRegion({
+    el: '.slide-region',
+    concurrentTransition: true
+  });
+
+  window.normalRegion = normalRegion;
+  window.fadeRegion = fadeRegion;
+  window.slideRegion = slideRegion;
 })();
 
 /*
@@ -33,8 +46,8 @@
 })();
 
 /*
- * AnimationView
- * ------------
+ * FadeView
+ * --------
  * A view that supports animated transitions. All you do is add in
  * either animateIn or animateOut methods. Once you've done your animation
  * simply trigger 'animateOut' or 'animateIn' to let the region know.
@@ -42,9 +55,9 @@
  */
 
 (function() {
-  var ANIMATION_DURATION = 300;
+  var ANIMATION_DURATION = 200;
 
-  var AnimationView = Marionette.ItemView.extend({
+  var FadeView = Marionette.ItemView.extend({
     template: _.template('<h1>Animated View</h1><div>A random name: <%= randomName %></div>'),
     className: 'animated-view view',
 
@@ -68,7 +81,49 @@
     }
   });
 
-  window.AnimationView = AnimationView;
+  window.FadeView = FadeView;
+})();
+
+/*
+ * SlideView
+ * ---------
+ * Another view. This one does slide stuff LIKE MAGIC
+ *
+ */
+
+(function() {
+  var ANIMATION_DURATION = 300;
+
+  var SlideView = Marionette.ItemView.extend({
+    template: _.template('<h1>Animated View</h1><div>A random place: <%= randomPlace %>.<br>Also more test so you can see that they do exist at the same time.</div>'),
+    className: 'animated-view view',
+
+    transitionInCss: {
+      position: 'absolute',
+      left: 500,
+    },
+
+    // Do some jQuery stuff, then, once you're done, trigger 'animateIn' to let the region
+    // know that you're done
+    animateIn: function() {
+      this.$el.animate(
+        { left: 0 },
+        ANIMATION_DURATION,
+        _.bind(this.trigger, this, 'animateIn')
+      );
+    },
+
+    // Same as above, except this time we trigger 'animateOut'
+    animateOut: function() {
+      this.$el.animate(
+        { left: -500 },
+        ANIMATION_DURATION,
+        _.bind(this.trigger, this, 'animateOut')
+      );
+    }
+  });
+
+  window.SlideView = SlideView;
 })();
 
 /*
@@ -91,13 +146,25 @@
     'joe zim', 'dbailey', 'cobbweb'
   ];
 
+  var places = [
+    'Yosemite', 'Philadelphia', 'Boston', 'Brooklyn', 'Ukraine',
+    'Kokomo', 'Florida', 'Your house', 'Palo Alto', 'Bermuda'
+  ];
+
+
   function randomName() {
     var randomIndex = randomNumber(0, names.length-1);
     return names[randomIndex];
   }
 
+  function randomPlace() {
+    var randomIndex = randomNumber(0, places.length-1);
+    return places[randomIndex];
+  }
+
   window.randomNumber = randomNumber;
   window.randomName = randomName;
+  window.randomPlace = randomPlace;
 })();
 
 /*
@@ -114,27 +181,50 @@
         randomNumber: randomNumber(0, 100)
       })
     });
-    myRegion.show(normalView);
+    normalRegion.show(normalView);
   }
 
-  function newAnimated() {
-    var animationView = new AnimationView({
+  function newFadeView() {
+    var fadeView = new FadeView({
       model: new Backbone.Model({
         randomName: randomName()
       })
     });
-    myRegion.show(animationView);
+    fadeRegion.show(fadeView);
   }
 
-  function emptyRegion() {
-    myRegion.empty();
+  function newSlideView() {
+    var slideView = new SlideView({
+      model: new Backbone.Model({
+        randomPlace: randomPlace()
+      })
+    });
+    slideRegion.show(slideView);
+  }
+
+  function emptyNormalRegion() {
+    normalRegion.empty();
+  }
+
+  function emptyFadeRegion() {
+    fadeRegion.empty();
+  }
+
+  function emptySlideRegion() {
+    slideRegion.empty();
   }
 
   var $newNormal = $('.show-normal');
-  var $newAnimated = $('.show-animated');
-  var $emptyRegion = $('.empty-region');
+  var $fadeIn = $('.fade-in');
+  var $slideIn = $('.slide-in');
+  var $emptyNormal = $('.empty-normal');
+  var $emptyFade = $('.empty-fade');
+  var $emptySlide = $('.empty-slide');
 
   $newNormal.on('click', newNormal);
-  $newAnimated.on('click', newAnimated);
-  $emptyRegion.on('click', emptyRegion);
+  $fadeIn.on('click', newFadeView);
+  $slideIn.on('click', newSlideView);
+  $emptyNormal.on('click', emptyNormalRegion);
+  $emptyFade.on('click', emptyFadeRegion);
+  $emptySlide.on('click', emptySlideRegion);
 })();

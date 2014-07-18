@@ -14,12 +14,25 @@
   <p>
     This is possible because the region delegates the animation to the views. Enjoy the demo below!
   </p>
+  
   <div class='button-group'>
-    <button class='show-normal'>Show Normal View</button>
-    <button class='show-animated'>Show Animated View</button>
-    <button class='empty-region'>Empty Region</button>
+    <button class='show-normal'>Show No Transition</button>
+    <button class='empty-normal'>Empty Region</button>
   </div>
-  <div class='region'></div>
+  <div class='normal-region region'></div>
+
+  <div class='button-group'>
+    <button class='fade-in'>Show FadeView</button>
+    <button class='empty-fade'>Empty Region</button>
+  </div>
+  <div class='fade-region region'></div>
+
+  <div class='button-group'>
+    <button class='slide-in'>Show SlideView</button>
+    <button class='empty-slide'>Empty Region</button>
+  </div>
+  <div class='slide-region region'></div>
+
   <script src='../bower_components/jquery/dist/jquery.js'></script>
   <script src='../bower_components/underscore/underscore.js'></script>
   <script src='../bower_components/backbone/backbone.js'></script>
