@@ -92,7 +92,7 @@
  */
 
 (function() {
-  var ANIMATION_DURATION = 300;
+  var ANIMATION_DURATION = 400;
 
   var SlideView = Marionette.ItemView.extend({
     template: _.template('<h1>Animated View</h1><div>A random place: <%= randomPlace %>.<br>Also more test so you can see that they do exist at the same time.</div>'),

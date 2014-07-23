@@ -23,7 +23,17 @@
     // you will be some sort of mixin for a region.
     setQueue: function(view, options) {
       this._queuedView = view;
-      this._queuedOptions = options;
+      this._queueOptions = options;
+    },
+
+    setInQueue: function(view, options) {
+      this._inQueueView = view;
+      this._inQueueOptions = options;
+    },
+
+    _clearInQueue: function() {
+      delete this._inQueueView;
+      delete this._inQueueOptions;
     },
 
     checkQueue: function() {
@@ -46,13 +56,21 @@
 
     show: function(view, options) {
 
-      // Queue that jazz if it's already animating. Well,
-      // sort of a queue. Only one thing at a time!
-      if (this._animating) {
-        this.setQueue(view, options)
+      // If animating out, set the animateInQueue.
+      // This new view will be what is transitioned in
+      if (this._animatingOut) {
+        this.setInQueue(view, options);
+        return this;
+      }
+
+      else if (this._animatingIn) {
+        this.setQueue(view, options);
         this.checkQueue();
         return this;
       }
+
+      this.setInQueue(view, options);
+      this._animatingOut = true;
 
       this._ensureElement();
 
@@ -64,8 +82,7 @@
       // If the view has an animate out function, then wait for it to conclude and then continue.
       // Otherwise, simply continue.
       if (animateOut && !concurrent) {
-        this.listenToOnce(currentView, 'animateOut', _.bind(this._onTransitionOut, this, view, options));
-        this._animating = true;
+        this.listenToOnce(currentView, 'animateOut', _.bind(this._onTransitionOut, this));
         currentView.animateOut();
         // Return this for backwards compat
         return this;
@@ -73,19 +90,28 @@
 
       // Otherwise, execute both transitions at the same time
       else if (animateOut && concurrent) {
-        this._animating = true;
         currentView.animateOut();
-        return this._onTransitionOut(view, options);
+        return this._onTransitionOut();
       }
 
       else {
-        return this._onTransitionOut(view, options);
+        return this._onTransitionOut();
       }
     },
 
     // This is most of the original show function.
-    _onTransitionOut: function(view, options) {
+    _onTransitionOut: function() {
       this.triggerMethod('animateOut', this.currentView);
+
+      var view = this._inQueueView;
+      var options = this._inQueueOptions;
+      this._clearInQueue();
+      
+      // This is the last time to update what view is about to be shown.
+      // At this point, any subsequent shows will cause a brand new animation phase
+      // to commence.
+      this._animatingOut = false;
+      this._animatingIn = true;
 
       var showOptions = options || {};
       var isDifferentView = view !== this.currentView;
@@ -94,6 +120,8 @@
 
       // we are only changing the view if there is a view to change to begin with
       var isChangingView = !!this.currentView;
+
+      // console.log(view.animateIn);
 
       // The region is only animating if there's an animateIn method on the new view
       var animatingIn = _.isFunction(view.animateIn);
@@ -183,7 +211,7 @@
       }
 
       delete this._oldView;
-      this._animating = false;
+      this._animatingIn = false;
       this.triggerMethod('animateIn', this.currentView);
       return this;
     },
