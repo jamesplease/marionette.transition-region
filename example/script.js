@@ -21,7 +21,7 @@
   // that makes the transition in and out effects happen concurrently
   var slideRegion = new Marionette.TransitionRegion({
     el: '.slide-region',
-    concurrentTransition: true
+    concurrentAnimation: true
   });
 
   window.normalRegion = normalRegion;
