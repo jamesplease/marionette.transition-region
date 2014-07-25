@@ -1,13 +1,5 @@
 /*
  * marionette.transition-region
- * ----------------------------
- * Allows for animted transitioning between your views.
- *
- * The majority of this code is a result of needing to patch Marionette.Region's
- * public API, as the available public hooks weren't sufficient. For this reason,
- * the library appears to add more code to the Region Class than it actually does.
- *
- * The transitionRegion should be backwards compatible with regular Regions.
  *
  */
 
