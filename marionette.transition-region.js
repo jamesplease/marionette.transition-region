@@ -110,7 +110,8 @@ Marionette.TransitionRegion = Marionette.Region.extend({
       return this;
     }
 
-    // Render the new view, then hide its $el
+    view.once('destroy', _.bind(this.empty, this, {animate:false}));
+    // Render the new view
     view.render();
 
     if (isChangingView) {
@@ -141,6 +142,10 @@ Marionette.TransitionRegion = Marionette.Region.extend({
 
     this.currentView = view;
 
+    if (isChangingView) {
+      this.triggerMethod('swap', view);
+    }
+
     // show triggerMethods
     this.triggerMethod('show', view);
     if (_.isFunction(view.triggerMethod)) {
@@ -169,13 +174,16 @@ Marionette.TransitionRegion = Marionette.Region.extend({
 
   // After it's shown, then we triggerMethod 'animateIn'
   _onTransitionIn: function(options) {
-    var preventDestroy =  options.preventDestroy;
 
     // Destroy the old view, if it exists
     // This is only relevant when this is an animated Region.
     // Otherwise, the older view is destroyed between the swaps.
     var oldView = this._oldView;
-    if (!preventDestroy && oldView && !oldView.isDestroyed) {
+    var isDifferentView = oldView !== this.currentView;
+    var preventDestroy = !!options.preventDestroy;
+    var _shouldDestroyView = !preventDestroy && isDifferentView;
+
+    if (_shouldDestroyView && oldView && !oldView.isDestroyed) {
       if (oldView.destroy) { oldView.destroy(); }
       else if (oldView.remove) { oldView.remove(); }
     }
@@ -192,7 +200,7 @@ Marionette.TransitionRegion = Marionette.Region.extend({
     options = options || {};
 
     var view = this.currentView;
-    if (!view || view.isDestroyed){ return; }
+    if (!view){ return; }
 
     // Animate by default
     var animate = options.animate === undefined ? true : options.animate;
@@ -211,12 +219,11 @@ Marionette.TransitionRegion = Marionette.Region.extend({
   // the reference.
   _destroyView: function() {
     var view = this.currentView;
-    if (!view || view.isDestroyed){ return; }
 
     this.triggerMethod('before:empty', view);
 
     // call 'destroy' or 'remove', depending on which is found
-    if (view.destroy) { view.destroy(); }
+    if (view.destroy && !view.isDestroyed) { view.destroy(); }
     else if (view.remove) { view.remove(); }
 
     this.triggerMethod('empty', view);

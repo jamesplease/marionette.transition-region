@@ -14,6 +14,7 @@ if (!global.document || !global.window) {
 
 var sinon = require('sinon');
 var chai = require('chai');
+var chaiJq = require('chai-jq');
 var sinonChai = require('sinon-chai');
 
 global._ = require('underscore');
@@ -22,6 +23,7 @@ global.$ = global.jQuery = Backbone.$ = require('jquery');
 global.Marionette = require('backbone.marionette');
 
 chai.use(sinonChai);
+chai.use(chaiJq);
 
 global.expect = chai.expect;
 global.sinon = sinon;
