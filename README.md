@@ -1,4 +1,5 @@
 # marionette.transition-region
+![Travis Status](http://img.shields.io/travis/jmeas/marionette.transition-region.svg?style=flat)
 
 This library is in pre-alpha development. Use at your own risk.
 
