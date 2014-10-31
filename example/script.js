@@ -199,7 +199,7 @@
   }, {
     addTransitionRule: function () {
       if (!this.transitionRuleAdded) {
-        sheet = window.createStylesheet();
+        var sheet = window.createStylesheet();
         var className = '.' + this.prototype.className.split(' ').join('.');
         sheet.insertRule(className + ' { transition: transform ' + ANIMATION_DURATION + 'ms ease; }', 0);
         this.transitionRuleAdded = true;
