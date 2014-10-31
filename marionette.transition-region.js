@@ -129,7 +129,8 @@ Marionette.TransitionRegion = Marionette.Region.extend({
     // Only hide the view if we want to animate it
     if (animatingIn) {
       var transitionInCss = view.transitionInCss || this.transitionInCss;
-      view.$el.css(transitionInCss);
+      var props = _.isFunction(transitionInCss) ? transitionInCss(options) : transitionInCss;
+      view.$el.css(props);
     }
 
     // Attach or append the HTML, depending on whether we
