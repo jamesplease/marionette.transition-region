@@ -265,7 +265,7 @@ Marionette.TransitionRegion = Marionette.Region.extend({
   // finish, and then transitions in the queued view.
   _setQueue: function(view, options) {
     this._queuedView = view;
-    this._queueOptions = options;
+    this._queuedOptions = options;
   },
 
   // The queue needs to be registered, which
