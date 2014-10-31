@@ -50,14 +50,14 @@ Marionette.TransitionRegion = Marionette.Region.extend({
     // then start the animation and wait for it to conclude before continue.
     if (animateOut && !concurrent) {
       this.listenToOnce(currentView, 'animateOut', _.bind(this._onTransitionOut, this));
-      currentView.animateOut();
+      currentView.animateOut(options);
       return this;
     }
 
     // Otherwise, if it's animating out and concurrent then we animate
     // out and continue immediatley.
     else if (animateOut && concurrent) {
-      currentView.animateOut();
+      currentView.animateOut(options);
       return this._onTransitionOut();
     }
 
@@ -157,7 +157,7 @@ Marionette.TransitionRegion = Marionette.Region.extend({
     // If there's an animateIn method, then call it and wait for it to complete
     if (animatingIn) {
       this.listenToOnce(view, 'animateIn', _.bind(this._onTransitionIn, this, showOptions));
-      view.animateIn();
+      view.animateIn(showOptions);
       return this;
     }
 
