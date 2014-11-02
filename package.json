@@ -1,0 +1,54 @@
+{
+  "name": "marionette.transition-region",
+  "version": "0.1.0",
+  "description": "Add animated transitions to your Marionette Views with ease.",
+  "main": "marionette.transition-region.js",
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "test": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jmeas/marionette.transition-region.git"
+  },
+  "keywords": [
+    "marionette",
+    "backbone",
+    "views",
+    "animated",
+    "transitions",
+    "animation",
+    "animate",
+    "transition",
+    "region",
+    "presentation"
+  ],
+  "author": "Jmeas",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jmeas/marionette.transition-region/issues"
+  },
+  "homepage": "https://github.com/jmeas/marionette.transition-region",
+  "devDependencies": {
+    "backbone": "^1.1.2",
+    "backbone.marionette": "^2.1.0-pre",
+    "chai": "^1.9.1",
+    "chai-jq": "0.0.7",
+    "chai-jquery": "^1.2.3",
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-uglify": "^0.5.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-mocha": "^0.4.11",
+    "grunt-mocha-test": "^0.11.0",
+    "jquery": "^2.1.1",
+    "jsdom": "^0.11.1",
+    "load-grunt-tasks": "^0.6.0",
+    "mocha": "^1.21.0",
+    "sinon": "^1.10.3",
+    "sinon-chai": "^2.5.0",
+    "underscore": "^1.6.0"
+  }
+}

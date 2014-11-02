@@ -8,6 +8,26 @@
  *
  */
 
+(function () {
+  var sheet = function() {
+    // Create the <style> tag
+    var style = document.createElement("style");
+
+    // Add a media (and/or media query) here if you'd like!
+    // style.setAttribute("media", "screen")
+    // style.setAttribute("media", "only screen and (max-width : 1024px)")
+
+    // WebKit hack :(
+    style.appendChild(document.createTextNode(""));
+
+    // Add the <style> element to the page
+    document.head.appendChild(style);
+
+    return style.sheet;
+  };
+  window.createStylesheet = sheet;
+})();
+
 (function() {
   var normalRegion = new Marionette.TransitionRegion({
     el: '.normal-region'
@@ -24,9 +44,15 @@
     concurrentTransition: true
   });
 
+  var slideCSSRegion = new Marionette.TransitionRegion({
+    el: '.slide-css-region',
+    concurrentTransition: true
+  });
+
   window.normalRegion = normalRegion;
   window.fadeRegion = fadeRegion;
   window.slideRegion = slideRegion;
+  window.slideCSSRegion = slideCSSRegion;
 })();
 
 /*
@@ -126,6 +152,65 @@
   window.SlideView = SlideView;
 })();
 
+
+
+
+(function() {
+  var ANIMATION_DURATION = 400;
+
+  var SlideViewCSSTransition = Marionette.ItemView.extend({
+    initialize: function () {
+      this.constructor.addTransitionRule();
+      Marionette.ItemView.prototype.initialize.apply(this, arguments);
+    },
+    template: _.template('<h1>Animated View</h1><div>A random place: <%= randomPlace %>.<br>Also more test so you can see that they do exist at the same time.</div>'),
+    className: 'animated-view view',
+
+    transitionInCss: function (options) {
+      options = options || {};
+      var delta = options.backwards ? -500 : 500;
+      return {
+        position: 'absolute',
+        transform: 'translateX(' + delta + 'px)'
+      }
+    },
+
+    // Do some jQuery stuff, then, once you're done, trigger 'animateIn' to let the region
+    // know that you're done
+    animateIn: function(options) {
+      options = options || {};
+      this.$el.width(); // trigger a repaint ><
+      this.$el.css({
+        transform: 'translateX(0)'
+      });
+      setTimeout(_.bind(this.trigger, this, 'animateIn'), ANIMATION_DURATION)
+    },
+
+    // Same as above, except this time we trigger 'animateOut'
+    animateOut: function(options) {
+      options = options || {};
+      var delta = options.backwards ? 500 : -500;
+      this.$el.width(); // trigger a repaint ><
+      this.$el.css({
+        transform: 'translateX(' + delta + 'px)'
+      });
+      setTimeout(_.bind(this.trigger, this, 'animateOut'), ANIMATION_DURATION);
+    }
+  }, {
+    addTransitionRule: function () {
+      if (!this.transitionRuleAdded) {
+        var sheet = window.createStylesheet();
+        var className = '.' + this.prototype.className.split(' ').join('.');
+        sheet.insertRule(className + ' { transition: transform ' + ANIMATION_DURATION + 'ms ease; }', 0);
+        this.transitionRuleAdded = true;
+      }
+    }
+  });
+
+  window.SlideViewCSSTransition = SlideViewCSSTransition;
+})();
+
+
 /*
  * random
  * ------
@@ -202,6 +287,19 @@
     slideRegion.show(slideView);
   }
 
+  function newSlideViewCSS(ev) {
+    var slideView = new SlideViewCSSTransition({
+      model: new Backbone.Model({
+        randomPlace: randomPlace()
+      })
+    });
+    slideCSSRegion.show(slideView, { backwards: $(ev.currentTarget).hasClass('slide-css-in-back') });
+  }
+
+  function emptySlideCSSRegion() {
+    slideCSSRegion.empty();
+  }
+
   function emptyNormalRegion() {
     normalRegion.empty();
   }
@@ -220,6 +318,9 @@
   var $emptyNormal = $('.empty-normal');
   var $emptyFade = $('.empty-fade');
   var $emptySlide = $('.empty-slide');
+  var $emptySlideCSS = $('.empty-css-slide');
+  var $slideInCSS = $('.slide-css-in');
+  var $slideInBackCSS= $('.slide-css-in-back');
 
   $newNormal.on('click', newNormal);
   $fadeIn.on('click', newFadeView);
@@ -227,4 +328,7 @@
   $emptyNormal.on('click', emptyNormalRegion);
   $emptyFade.on('click', emptyFadeRegion);
   $emptySlide.on('click', emptySlideRegion);
+  $slideInCSS.on('click', newSlideViewCSS);
+  $slideInBackCSS.on('click', newSlideViewCSS);
+  $emptySlideCSS.on('click', emptySlideCSSRegion);
 })();
