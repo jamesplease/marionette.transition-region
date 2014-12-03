@@ -3,6 +3,19 @@
  *
  */
 
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD
+        define(['marionette'], factory);
+    } else if (typeof exports === 'object') {
+        // Node, CommonJS-like
+        module.exports = factory(require('marionette'));
+    } else {
+        // Browser globals (root is window)
+        factory(root.Marionette);
+    }
+}(this, function (Marionette) {
+  
   Marionette.TransitionRegion = Marionette.Region.extend({
 
     // The styling to be set on a View that is about to be
@@ -285,3 +298,6 @@
       delete this._queuedOptions;
     }
   });
+
+  return Marionette.TransitionRegion;
+}));
