@@ -106,7 +106,7 @@
       var view = this._inQueueView;
       var options = this._inQueueOptions;
       this._clearInQueue();
-      
+
       // This is the last time to update what view is about to be shown.
       // At this point, any subsequent shows will cause a brand new animation phase
       // to commence.
@@ -150,11 +150,11 @@
       }
 
       // before:show triggerMethods
-      this.triggerMethod("before:show", view);
+      this.triggerMethod('before:show', view);
       if (_.isFunction(view.triggerMethod)) {
-        view.triggerMethod("before:show");
+        view.triggerMethod('before:show');
       } else {
-        this.triggerMethod.call(view, "before:show");
+        this.triggerMethod.call(view, 'before:show');
       }
 
       // Only hide the view if we want to animate it
@@ -174,11 +174,11 @@
       this.currentView = view;
 
       // show triggerMethods
-      this.triggerMethod("show", view);
+      this.triggerMethod('show', view);
       if (_.isFunction(view.triggerMethod)) {
-        view.triggerMethod("show");
+        view.triggerMethod('show');
       } else {
-        this.triggerMethod.call(view, "show");
+        this.triggerMethod.call(view, 'show');
       }
 
       // If there's an animateIn method, then call it and wait for it to complete
@@ -221,7 +221,7 @@
       options = options || {};
 
       var view = this.currentView;
-      if (!view || view.isDestroyed){ return; }
+      if (!view) { return; }
 
       // Animate by default
       var animate = options.animate === undefined ? true : options.animate;
@@ -229,16 +229,42 @@
       // Animate the view before destroying it if a function exists. Otherwise,
       // immediately destroy it
       if (_.isFunction(view.animateOut) && animate) {
-        this.listenToOnce(this.currentView, 'animateOut', _.bind(this._destroyView, this));
+        this.listenToOnce(this.currentView, 'animateOut', _.bind(function() { this._empty(options); }, this));
         this.currentView.animateOut();
       } else {
+        this._empty(options);
+      }
+    },
+
+    // original Marionette.Region.empty()
+    _empty: function(options) {
+      var view = this.currentView;
+
+      var preventDestroy = Marionette._getValue(options, 'preventDestroy', this);
+      // If there is no view in the region
+      // we should not remove anything
+      if (!view) { return; }
+
+      view.off('destroy', this.empty, this);
+      this.triggerMethod('before:empty', view);
+      if (!preventDestroy) {
         this._destroyView();
       }
+      this.triggerMethod('empty', view);
+
+      // Remove region pointer to the currentView
+      delete this.currentView;
+
+      if (preventDestroy) {
+        this.$el.contents().detach();
+      }
+
+      return this;
     },
 
     _destroyView: function() {
       var view = this.currentView;
-      if (!view || view.isDestroyed){ return; }
+      if (!view || view.isDestroyed) { return; }
 
       this.triggerMethod('before:empty', view);
 
